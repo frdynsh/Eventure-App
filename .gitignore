@@ -1,0 +1,17 @@
+# --- CodeIgniter 4 Ignore ---
+backend/vendor/
+backend/writable/
+backend/.env
+backend/public/uploads/
+backend/test/
+backend/build/
+
+# --- Flutter Ignore ---
+mobile/build/
+mobile/.dart_tool/
+mobile/.idea/
+mobile/*.iml
+mobile/.vscode/
+mobile/android/.gradle
+mobile/ios/.symlinks
+mobile/ios/Pods/
