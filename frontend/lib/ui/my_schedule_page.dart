@@ -79,60 +79,57 @@ class _MySchedulePageState extends State<MySchedulePage> {
 
     showDialog(
       context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setStateDialog) {
-            return AlertDialog(
-              title: const Text("Edit Jadwal"),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: noteCtrl,
-                    decoration: const InputDecoration(
-                      labelText: "Catatan Pribadi",
-                    ),
-                    maxLines: 2,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setStateDialog) {
+          return AlertDialog(
+            title: const Text("Edit Jadwal"),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: noteCtrl,
+                  decoration: const InputDecoration(
+                    labelText: "Catatan Pribadi",
                   ),
-                  const SizedBox(height: 15),
-                  DropdownButtonFormField<String>(
-                    value: currentStatus,
-                    items: ['Plan', 'Going', 'Done']
-                        .map(
-                          (val) =>
-                              DropdownMenuItem(value: val, child: Text(val)),
-                        )
-                        .toList(),
-                    onChanged: (newValue) =>
-                        setStateDialog(() => currentStatus = newValue!),
-                    decoration: const InputDecoration(
-                      labelText: "Status Kehadiran",
-                    ),
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text("Batal"),
+                  maxLines: 2,
                 ),
-                ElevatedButton(
-                  onPressed: () async {
-                    await _apiService.updateSchedule(
-                      item.id!,
-                      noteCtrl.text,
-                      currentStatus,
-                    );
-                    Navigator.pop(context);
-                    _loadData();
-                  },
-                  child: const Text("Simpan"),
+                const SizedBox(height: 15),
+                DropdownButtonFormField<String>(
+                  value: currentStatus,
+                  items: ['Plan', 'Going', 'Done']
+                      .map(
+                        (val) => DropdownMenuItem(value: val, child: Text(val)),
+                      )
+                      .toList(),
+                  onChanged: (newValue) =>
+                      setStateDialog(() => currentStatus = newValue!),
+                  decoration: const InputDecoration(
+                    labelText: "Status Kehadiran",
+                  ),
                 ),
               ],
-            );
-          },
-        );
-      },
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text("Batal"),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  await _apiService.updateSchedule(
+                    item.id!,
+                    noteCtrl.text,
+                    currentStatus,
+                  );
+                  Navigator.pop(context);
+                  _loadData();
+                },
+                child: const Text("Simpan"),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 
@@ -221,7 +218,7 @@ class _MySchedulePageState extends State<MySchedulePage> {
                 }
 
                 return ListView.builder(
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(16),
                   itemCount: snapshot.data!.length,
                   itemBuilder: (context, index) {
                     final item = snapshot.data![index];
@@ -230,46 +227,64 @@ class _MySchedulePageState extends State<MySchedulePage> {
                     if (item.status == 'Done') statusColor = Colors.blue;
 
                     return Card(
-                      elevation: 3,
-                      margin: const EdgeInsets.only(bottom: 12),
+                      elevation: 4,
+                      margin: const EdgeInsets.only(bottom: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                       child: Column(
                         children: [
                           if (item.imageUrl.isNotEmpty)
-                            SizedBox(
-                              height: 120,
-                              width: double.infinity,
-                              child: Image.network(
-                                item.imageUrl,
-                                fit: BoxFit.cover,
-                                errorBuilder: (c, e, s) => Container(
-                                  color: Colors.grey[300],
-                                  child: const Icon(Icons.broken_image),
+                            ClipRRect(
+                              borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(16),
+                              ),
+                              child: SizedBox(
+                                height: 140,
+                                width: double.infinity,
+                                child: Image.network(
+                                  item.imageUrl,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (c, e, s) => Container(
+                                    color: Colors.grey[300],
+                                    child: const Icon(Icons.broken_image),
+                                  ),
                                 ),
                               ),
                             ),
                           ListTile(
+                            contentPadding: const EdgeInsets.all(16),
                             title: Text(
                               item.eventName,
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
+                                fontSize: 16,
                               ),
                             ),
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const SizedBox(height: 5),
+                                const SizedBox(height: 6),
                                 Row(
                                   children: [
-                                    const Icon(Icons.calendar_today, size: 14),
-                                    const SizedBox(width: 5),
+                                    const Icon(
+                                      Icons.calendar_today,
+                                      size: 14,
+                                      color: Colors.indigo,
+                                    ),
+                                    const SizedBox(width: 6),
                                     Text(item.eventDate.substring(0, 10)),
                                   ],
                                 ),
-                                const SizedBox(height: 2),
+                                const SizedBox(height: 4),
                                 Row(
                                   children: [
-                                    const Icon(Icons.location_on, size: 14),
-                                    const SizedBox(width: 5),
+                                    const Icon(
+                                      Icons.location_on,
+                                      size: 14,
+                                      color: Colors.indigo,
+                                    ),
+                                    const SizedBox(width: 6),
                                     Expanded(
                                       child: Text(
                                         item.venueName,
@@ -278,7 +293,7 @@ class _MySchedulePageState extends State<MySchedulePage> {
                                     ),
                                   ],
                                 ),
-                                const Divider(),
+                                const SizedBox(height: 6),
                                 Text(
                                   "📝 Catatan: ${item.personalNotes}",
                                   style: const TextStyle(
@@ -294,7 +309,7 @@ class _MySchedulePageState extends State<MySchedulePage> {
                               ),
                               decoration: BoxDecoration(
                                 color: statusColor.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(4),
+                                borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
                                 item.status,
@@ -306,17 +321,21 @@ class _MySchedulePageState extends State<MySchedulePage> {
                             ),
                           ),
                           Padding(
-                            padding: const EdgeInsets.all(8.0),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
                                 OutlinedButton.icon(
+                                  onPressed: () => _editItem(item),
                                   icon: const Icon(Icons.edit, size: 18),
                                   label: const Text("Edit"),
-                                  onPressed: () => _editItem(item),
                                 ),
-                                const SizedBox(width: 10),
+                                const SizedBox(width: 12),
                                 OutlinedButton.icon(
+                                  onPressed: () => _deleteItem(item.id!),
                                   icon: const Icon(
                                     Icons.delete,
                                     size: 18,
@@ -326,7 +345,6 @@ class _MySchedulePageState extends State<MySchedulePage> {
                                     "Hapus",
                                     style: TextStyle(color: Colors.red),
                                   ),
-                                  onPressed: () => _deleteItem(item.id!),
                                   style: OutlinedButton.styleFrom(
                                     side: const BorderSide(color: Colors.red),
                                   ),
@@ -343,9 +361,9 @@ class _MySchedulePageState extends State<MySchedulePage> {
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: _addCustomSchedule,
-        child: const Icon(Icons.add),
         backgroundColor: Colors.indigo,
         tooltip: "Tambah Jadwal Sendiri",
+        child: const Icon(Icons.add),
       ),
     );
   }

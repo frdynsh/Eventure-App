@@ -9,7 +9,8 @@ class SearchEventPage extends StatefulWidget {
   State<SearchEventPage> createState() => _SearchEventPageState();
 }
 
-class _SearchEventPageState extends State<SearchEventPage> {
+class _SearchEventPageState extends State<SearchEventPage>
+    with SingleTickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   final ApiService _apiService = ApiService();
 
@@ -22,12 +23,10 @@ class _SearchEventPageState extends State<SearchEventPage> {
     super.dispose();
   }
 
-  // --- LOGIC SECTION ---
-
   void _doSearch() async {
     if (_searchController.text.isEmpty) return;
 
-    FocusScope.of(context).unfocus(); // Tutup keyboard
+    FocusScope.of(context).unfocus();
     setState(() => _isLoading = true);
 
     try {
@@ -80,7 +79,6 @@ class _SearchEventPageState extends State<SearchEventPage> {
 
     if (!mounted) return;
 
-    // Anggap status 200 sukses, selain itu gagal
     bool success = result.status == 200;
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -91,90 +89,95 @@ class _SearchEventPageState extends State<SearchEventPage> {
     );
   }
 
-  // --- UI BUILD SECTION ---
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        toolbarHeight: 70,
-        title: Container(
-          height: 45,
-          margin: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(
-            color: Colors.grey[100],
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.indigo.withOpacity(0.3)),
-          ),
-          child: TextField(
-            controller: _searchController,
-            textInputAction: TextInputAction.search,
-            textAlignVertical: TextAlignVertical.center,
-            decoration: InputDecoration(
-              hintText: "Cari Artis / Kota...",
-              hintStyle: TextStyle(color: Colors.grey[500], fontSize: 14),
-              prefixIcon: const Icon(Icons.search, color: Colors.indigo),
-              suffixIcon: _searchController.text.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(
-                        Icons.clear,
-                        size: 20,
-                        color: Colors.grey,
-                      ),
-                      onPressed: () {
-                        _searchController.clear();
-                        setState(() => _events = []);
-                      },
-                    )
-                  : null,
-              border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-            ),
-            onChanged: (val) => setState(() {}),
-            onSubmitted: (_) => _doSearch(),
-          ),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: IconButton(
-              onPressed: _doSearch,
-              icon: const Icon(
-                Icons.arrow_forward_ios,
-                color: Colors.indigo,
-                size: 20,
-              ),
-              tooltip: "Cari",
-            ),
-          ),
-        ],
-      ),
       body: Column(
         children: [
-          if (_isLoading)
-            const LinearProgressIndicator(
-              backgroundColor: Colors.transparent,
-              color: Colors.indigo,
-              minHeight: 3,
-            ),
-          _buildEventList(),
+          _buildSearchBar(),
+          if (_isLoading) const LinearProgressIndicator(color: Colors.indigo),
+          Expanded(
+            child: _events.isEmpty ? _buildEmptyState() : _buildEventList(),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildEventList() {
-    if (!_isLoading && _events.isEmpty) {
-      return Expanded(child: _buildEmptyState());
-    }
-
-    return Expanded(
-      child: ListView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        itemCount: _events.length,
-        itemBuilder: (context, index) => _buildEventCard(_events[index]),
+  Widget _buildSearchBar() {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          children: [
+            // TextField utama
+            Expanded(
+              child: TextField(
+                controller: _searchController,
+                textInputAction: TextInputAction.search,
+                onSubmitted: (_) => _doSearch(),
+                onChanged: (_) => setState(() {}),
+                decoration: InputDecoration(
+                  hintText: "Cari Artis / Kota...",
+                  hintStyle: TextStyle(color: Colors.grey[500]),
+                  prefixIcon: const Icon(Icons.search, color: Colors.indigo),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, color: Colors.grey),
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() => _events = []);
+                          },
+                        )
+                      : null,
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 14,
+                    horizontal: 16,
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[100],
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: Colors.indigo.withOpacity(0.3),
+                      width: 1,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.indigo, width: 1.5),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            // Tombol cari
+            Container(
+              height: 50,
+              decoration: BoxDecoration(
+                color: Colors.indigo,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.arrow_forward_ios, color: Colors.white),
+                onPressed: _doSearch,
+                tooltip: "Cari",
+              ),
+            ),
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildEventList() {
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      itemCount: _events.length,
+      itemBuilder: (context, index) {
+        return _buildEventCard(_events[index]);
+      },
     );
   }
 
@@ -219,116 +222,128 @@ class _SearchEventPageState extends State<SearchEventPage> {
     String venue =
         event['_embedded']?['venues']?[0]?['name'] ?? 'Unknown Venue';
 
-    return Card(
-      elevation: 4,
-      shadowColor: Colors.black26,
-      margin: const EdgeInsets.only(bottom: 20),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            height: 180,
-            width: double.infinity,
-            child: imgUrl.isNotEmpty
-                ? Image.network(
-                    imgUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (ctx, err, stack) => Container(
-                      color: Colors.grey[300],
-                      child: const Icon(
-                        Icons.broken_image,
-                        size: 50,
-                        color: Colors.grey,
+    return GestureDetector(
+      onTap: () => _saveEvent(event),
+      child: Card(
+        elevation: 6,
+        shadowColor: Colors.black26,
+        margin: const EdgeInsets.only(bottom: 20),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              height: 180,
+              width: double.infinity,
+              child: imgUrl.isNotEmpty
+                  ? ClipRRect(
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(16),
                       ),
-                    ),
-                  )
-                : Container(
-                    color: Colors.indigo.withOpacity(0.1),
-                    child: const Icon(
-                      Icons.music_note,
-                      size: 60,
-                      color: Colors.indigo,
-                    ),
-                  ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        event['name'] ?? 'No Name',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          height: 1.2,
+                      child: Image.network(
+                        imgUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (ctx, err, stack) => Container(
+                          color: Colors.grey[300],
+                          child: const Icon(
+                            Icons.broken_image,
+                            size: 50,
+                            color: Colors.grey,
+                          ),
                         ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.calendar_month_outlined,
-                            size: 16,
-                            color: Colors.indigo,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            date,
-                            style: TextStyle(
-                              color: Colors.grey[700],
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
+                    )
+                  : Container(
+                      decoration: BoxDecoration(
+                        color: Colors.indigo.withOpacity(0.1),
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(16),
+                        ),
                       ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.location_on_outlined,
-                            size: 16,
-                            color: Colors.indigo,
-                          ),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              venue,
-                              style: TextStyle(color: Colors.grey[600]),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
+                      child: const Icon(
+                        Icons.music_note,
+                        size: 60,
+                        color: Colors.indigo,
                       ),
-                    ],
-                  ),
-                ),
-                Container(
-                  margin: const EdgeInsets.only(left: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.indigo.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: IconButton(
-                    onPressed: () => _saveEvent(event),
-                    icon: const Icon(Icons.bookmark_add_outlined),
-                    color: Colors.indigo,
-                    tooltip: "Simpan ke Jadwal",
-                  ),
-                ),
-              ],
+                    ),
             ),
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          event['name'] ?? 'No Name',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.calendar_month_outlined,
+                              size: 16,
+                              color: Colors.indigo,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              date,
+                              style: TextStyle(
+                                color: Colors.grey[700],
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.location_on_outlined,
+                              size: 16,
+                              color: Colors.indigo,
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                venue,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(color: Colors.grey[600]),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.only(left: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.indigo.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: IconButton(
+                      onPressed: () => _saveEvent(event),
+                      icon: const Icon(Icons.bookmark_add_outlined),
+                      color: Colors.indigo,
+                      tooltip: "Simpan ke Jadwal",
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

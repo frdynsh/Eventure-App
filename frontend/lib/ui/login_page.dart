@@ -37,18 +37,14 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => _isLoading = false);
 
     if (response.status == 200 && response.data != null) {
-      // --- LOGIN SUCCESS ---
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('token', response.data['token']);
-
       int userId = int.parse(response.data['user']['id'].toString());
       await prefs.setInt('userId', userId);
       await prefs.setString('nama', response.data['user']['nama']);
-
       if (!mounted) return;
       Navigator.pushReplacementNamed(context, '/home');
     } else {
-      // --- LOGIN FAILED ---
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -66,112 +62,166 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Icon(
-                  Icons.music_note_rounded,
-                  size: 80,
-                  color: Colors.indigo,
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  "Eventure App",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.indigo,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  "Masuk untuk atur jadwal konsermu",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.grey),
-                ),
-                const SizedBox(height: 40),
-
-                _buildTextField(
-                  controller: _emailController,
-                  label: "Email",
-                  icon: Icons.email,
-                  inputType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value == null || value.isEmpty)
-                      return 'Email tidak boleh kosong';
-                    if (!value.contains('@')) return 'Format email tidak valid';
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                _buildTextField(
-                  controller: _passwordController,
-                  label: "Password",
-                  icon: Icons.lock,
-                  isPassword: true,
-                  validator: (value) {
-                    if (value == null || value.isEmpty)
-                      return 'Password tidak boleh kosong';
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  height: 50,
-                  child: _isLoading
-                      ? const Center(
-                          child: CircularProgressIndicator(
-                            color: Colors.indigo,
-                          ),
-                        )
-                      : ElevatedButton(
-                          onPressed: _doLogin,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.indigo,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            elevation: 3,
-                          ),
-                          child: const Text(
-                            "MASUK",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text("Belum punya akun?"),
-                    TextButton(
-                      onPressed: () =>
-                          Navigator.pushNamed(context, '/registrasi'),
-                      child: const Text(
-                        "Daftar disini",
-                        style: TextStyle(
-                          color: Colors.indigo,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+      body: Stack(
+        children: [
+          // Background Gradient
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.indigo, Colors.indigoAccent],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
             ),
           ),
-        ),
+          Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 28.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Logo Card
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.9),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black26,
+                          blurRadius: 10,
+                          offset: Offset(0, 5),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.music_note_rounded,
+                      size: 60,
+                      color: Colors.indigo,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    "Eventure App",
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black26,
+                          offset: Offset(1, 1),
+                          blurRadius: 2,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    "Masuk untuk atur jadwal konsermu",
+                    style: TextStyle(color: Colors.white70, fontSize: 16),
+                  ),
+                  const SizedBox(height: 40),
+
+                  // Form Card
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 15,
+                          offset: Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        children: [
+                          _buildTextField(
+                            controller: _emailController,
+                            label: "Email",
+                            icon: Icons.email_outlined,
+                            inputType: TextInputType.emailAddress,
+                            validator: (value) {
+                              if (value == null || value.isEmpty)
+                                return 'Email tidak boleh kosong';
+                              if (!value.contains('@'))
+                                return 'Format email tidak valid';
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          _buildTextField(
+                            controller: _passwordController,
+                            label: "Password",
+                            icon: Icons.lock_outline,
+                            isPassword: true,
+                            validator: (value) {
+                              if (value == null || value.isEmpty)
+                                return 'Password tidak boleh kosong';
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 24),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 50,
+                            child: _isLoading
+                                ? const Center(
+                                    child: CircularProgressIndicator(
+                                      color: Colors.indigo,
+                                    ),
+                                  )
+                                : ElevatedButton(
+                                    onPressed: _doLogin,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.indigo,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      elevation: 5,
+                                    ),
+                                    child: const Text(
+                                      "MASUK",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text("Belum punya akun?"),
+                              TextButton(
+                                onPressed: () =>
+                                    Navigator.pushNamed(context, '/registrasi'),
+                                child: const Text(
+                                  "Daftar disini",
+                                  style: TextStyle(
+                                    color: Colors.indigo,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -192,12 +242,19 @@ class _LoginPageState extends State<LoginPage> {
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon, color: Colors.indigo),
-        border: const OutlineInputBorder(),
-        focusedBorder: const OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.indigo, width: 2.0),
+        filled: true,
+        fillColor: Colors.grey.shade100,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
         ),
-        errorBorder: const OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.red, width: 1.0),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.indigo, width: 2.0),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.red, width: 1.5),
         ),
       ),
     );
