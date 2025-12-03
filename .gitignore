@@ -1,12 +1,12 @@
-# --- CodeIgniter 4 Ignore ---
+# --- CodeIgniter 4 Ignored ---
 backend/vendor/
 backend/writable/
 backend/.env
 backend/public/uploads/
-backend/test/
 backend/build/
+backend/tests/
 
-# --- Flutter Ignore ---
+# --- Flutter Ignored ---
 mobile/build/
 mobile/.dart_tool/
 mobile/.idea/
@@ -15,3 +15,7 @@ mobile/.vscode/
 mobile/android/.gradle
 mobile/ios/.symlinks
 mobile/ios/Pods/
+
+# --- System ---
+.DS_Store
+Thumbs.db
