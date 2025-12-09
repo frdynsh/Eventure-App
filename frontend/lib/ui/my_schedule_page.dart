@@ -176,7 +176,8 @@ class _MySchedulePageState extends State<MySchedulePage> {
           ElevatedButton(
             onPressed: () async {
               if (_userId == 0) return;
-              await _apiService.saveSchedule(_userId, {
+
+              final response = await _apiService.saveSchedule(_userId, {
                 "name": nameCtrl.text,
                 "dates": {
                   "start": {"localDate": dateCtrl.text},
@@ -190,8 +191,20 @@ class _MySchedulePageState extends State<MySchedulePage> {
                 "personalNotes": noteCtrl.text,
                 "status": "Plan",
               });
-              Navigator.pop(context);
-              _loadData();
+
+              if (!mounted) return;
+
+              if (response.status == 200) {
+                Navigator.pop(context); 
+                _loadData();
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(response.message),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
             },
             child: const Text("Simpan"),
           ),

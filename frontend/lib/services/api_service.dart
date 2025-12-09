@@ -4,7 +4,7 @@ import '../models/api_response.dart';
 
 class ApiService {
   // Ganti IP sesuai device: 10.0.2.2 (Emulator), 192.168.x.x (HP Fisik)
-  final String _baseUrl = "http://192.168.1.8:8080";
+  final String _baseUrl = "http://10.158.94.18:8080";
   final String _tmApiKey = "KDZukG7dXSJPoEwQva06OhZChR0q0eBH";
 
   // --- 1. AUTHENTICATION ---
@@ -69,40 +69,30 @@ class ApiService {
   }
 
   // --- 3. SCHEDULES (INTERNAL API) ---
-
   Future<ApiResponse> saveSchedule(
     int userId,
     Map<String, dynamic> event,
   ) async {
     try {
-      String date =
-          (event['dates']?['start']?['localDate'] ?? "2024-01-01") +
-          " 00:00:00";
-      String img = (event['images'] != null && event['images'].isNotEmpty)
-          ? event['images'][0]['url']
-          : "";
-      String venue = (event['_embedded']?['venues'] != null)
-          ? event['_embedded']['venues'][0]['name']
-          : "Unknown Venue";
-
       final response = await http.post(
         Uri.parse("$_baseUrl/schedules"),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'user_id': userId,
-          'external_id': event['id'],
+          'external_id':
+              event['id'] ?? 'CUSTOM-${DateTime.now().millisecondsSinceEpoch}',
           'event_name': event['name'],
-          'event_date': date,
-          'venue_name': venue,
-          'image_url': img,
-          'personal_notes': '-',
-          'status': 'Plan',
+          'event_date': event['dates']['start']['localDate'] + " 00:00:00",
+          'venue_name': event['_embedded']['venues'][0]['name'],
+          'image_url': '',
+          'personal_notes': event['personalNotes'] ?? '-',
+          'status': event['status'] ?? 'Plan',
         }),
       );
 
       return ApiResponse.fromJson(jsonDecode(response.body));
     } catch (e) {
-      return ApiResponse(status: 500, message: "Save Schedule Error: $e");
+      return ApiResponse(status: 500, message: e.toString());
     }
   }
 
